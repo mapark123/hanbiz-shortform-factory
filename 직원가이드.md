@@ -8,6 +8,13 @@
 > 2. 결과물은 반드시 **점검기 ERROR 0 + 점검표(`checklist.md`)** 를 통과시킨 뒤 넘긴다.
 > 3. 아래 «원하는 연출»과 «주의사항»을 어기면 반려된다. 특히 돈(유료 생성)·저작권·개인정보.
 
+
+> **2026-11-10 새 판 — 세로 공장(S8)** · 저장소 https://github.com/mapark123/hanbiz-shortform-factory (공개)
+> 말하는 사람 세로 영상 한 편을 **완성본 mp4** 까지: 목 아래 고정 자막(가운데·샥샥·노란 알약) · 위에서 내려오는 종이 판(사람은 아래로 밀려 내려감) · 인화 사진·포스트잇·도장·펜 표시 · 예능 큰 자막 · Q 카드 · 상담 버튼 · 효과음 자동 배치(라이브러리만, 반복 X) · −14 LUFS.
+> 돌리는 법 `세로공장/README.md` · 규칙 `.claude/skills/shortform/references/s8-vertical-factory.md` · 예시 `세로공장/예시_세로시험/`.
+>
+> **받기·업데이트**: 처음 `git clone https://github.com/mapark123/hanbiz-shortform-factory.git` · 그 뒤로는 이 폴더에서 Claude 에게 «쇼츠 공장 업데이트 땡겨와줘»(= `git pull`).
+
 ---
 
 ## 1. 무엇을 만드나
@@ -53,7 +60,7 @@
 ## 3. 시작하기
 
 ```powershell
-git clone <이 저장소> C:\Users\<나>\Desktop\숏폼자동화
+git clone https://github.com/mapark123/hanbiz-shortform-factory.git C:\Users\<나>\Desktop\숏폼자동화
 cd C:\Users\<나>\Desktop\숏폼자동화
 claude                      # 또는 .\이어하기.ps1 (가장 최근 대화 이어서) · -New 새 세션 · -Pick 골라서
 ```

@@ -1,0 +1,263 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<!-- 세로(9:16) 겹침 층: 말하는 사람 영상은 화면 가득 그대로, 그 위에 훅 제목·자막(목 아래 고정)·종이 판(위에서 내려옴)·사진·포스트잇·도장·포인트 자막·Q·이름표·코너·행동 유도를 투명 PNG 로 찍는다.
+     사람 화면을 내리고(판) 당기는(확대) 것은 _도구/세로합치기.py 가 같은 시각으로 한다.
+     데이터 = _도구/세로콘티.py 가 만드는 세로데이터.js · 찍기 = 세로찍기.cjs · 사진 = ../재료/이미지/이름.png -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap">
+<style>
+@font-face{font-family:P;font-weight:700;src:url("../../_공용/글꼴/paperlogy/Paperlogy-7Bold.ttf")}
+@font-face{font-family:P;font-weight:800;src:url("../../_공용/글꼴/paperlogy/Paperlogy-8ExtraBold.ttf")}
+@font-face{font-family:P;font-weight:900;src:url("../../_공용/글꼴/paperlogy/Paperlogy-9Black.ttf")}
+*{box-sizing:border-box}html,body{margin:0;background:transparent;width:1080px;height:1920px;overflow:hidden;font-family:P,sans-serif}
+.a{position:absolute}
+/* ── 자막: 목 아래 한 자리 고정 · 가운데 · 한 줄 2~3어절 · 부드럽게 샥샥 · 핵심어 = 노란 알약 + 검정 글자(형광펜처럼 쓸림) */
+#band{left:0;width:1080px;height:360px;background:linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(0,0,0,.07) 20%,rgba(0,0,0,.22) 38%,rgba(0,0,0,.28) 50%,rgba(0,0,0,.22) 62%,rgba(0,0,0,.07) 80%,rgba(0,0,0,0) 100%);z-index:10}
+.cl{left:540px;white-space:nowrap;font-weight:800;font-size:70px;line-height:1.2;letter-spacing:1px;color:#fff;-webkit-text-stroke:10px #1e1612;paint-order:stroke fill;z-index:20;visibility:hidden}
+.cl .kw{position:relative;display:inline-block;padding:0 16px;margin:0 -6px 0 2px}
+.cl .pill{position:absolute;left:0;top:-4px;right:0;bottom:-4px;padding:4px 16px;background:#ffde00;color:#000;-webkit-text-stroke:0;border-radius:16px;white-space:nowrap}
+/* ── 훅 제목(머리 위 벽, 얼굴은 안 가림) */
+.hook{left:0;width:1080px;text-align:center;white-space:nowrap;font-weight:900;color:#fff;paint-order:stroke fill;z-index:24;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));visibility:hidden}
+.hook.h1{font-size:82px;-webkit-text-stroke:18px #1e1612;letter-spacing:-1px}
+.hook.h2{font-size:108px;-webkit-text-stroke:22px #1e1612;letter-spacing:-2px}
+.hook b{color:#ffde3c;font-weight:900}
+/* ── 종이 판: 위에서 내려와 자막 위까지 덮는다(사람은 아래로 내려감) */
+#boardwrap{left:0;top:0;width:1080px;filter:drop-shadow(0 14px 20px rgba(25,15,5,.5));z-index:5;visibility:hidden}
+#under,#board{left:0;top:0;width:1080px}
+#under{background:#fdfbf4}
+#board{background:url(종이.jpg) center/cover;overflow:hidden}
+.layer{left:0;top:0;width:1080px;overflow:hidden}
+.paper{background:url(종이.jpg) center/cover}
+.photo{left:0;top:0;width:100%;height:100%;object-fit:cover}
+.print{background:#fbfaf6;padding:12px 12px 62px;box-shadow:0 2px 3px rgba(0,0,0,.35),0 18px 32px rgba(40,25,10,.38)}
+.print img{display:block;width:100%;height:100%;object-fit:cover}
+.print p{position:absolute;left:0;right:0;bottom:9px;margin:0;text-align:center;font-weight:800;font-size:33px;letter-spacing:-.8px;color:#1b2029;white-space:nowrap}
+.tape{width:130px;height:38px;background:linear-gradient(90deg,rgba(255,244,190,.62),rgba(255,238,170,.82) 40%,rgba(255,244,190,.6));box-shadow:0 1px 2px rgba(0,0,0,.18);clip-path:polygon(0 0,3% 18%,0 34%,3% 52%,0 70%,3% 86%,0 100%,100% 100%,97% 84%,100% 66%,97% 48%,100% 30%,97% 14%,100% 0);left:50%;top:-19px;margin-left:-65px}
+.tag{background:#fffdf6;font-weight:800;letter-spacing:-1px;color:#1b2a4a;padding:12px 26px;box-shadow:0 2px 2px rgba(0,0,0,.3),0 12px 22px rgba(30,20,0,.4);white-space:nowrap}
+.tag b{color:#d62835;font-weight:900}
+.note{background:linear-gradient(170deg,#ffe46b,#fbd63f);box-shadow:2px 4px 3px rgba(0,0,0,.12),8px 18px 24px rgba(60,40,0,.3);font-family:"Nanum Pen Script";color:#2a2112;display:grid;place-items:center;text-align:center;line-height:.98;border-bottom-right-radius:36px 10px}
+.note span{white-space:nowrap;display:block}
+.stamp{font-weight:900;letter-spacing:-3px;white-space:nowrap;padding:6px 26px;border:9px solid currentColor;border-radius:14px;background:rgba(255,255,255,.88);box-shadow:0 12px 22px rgba(0,0,0,.35);line-height:1.1}
+.step{left:0;background:#fffdf6;font-weight:800;font-size:40px;letter-spacing:-.8px;color:#1b2a4a;padding:10px 24px;box-shadow:0 2px 2px rgba(0,0,0,.3),0 10px 18px rgba(30,20,0,.35);white-space:nowrap}
+.step i{font-style:normal;color:#d62835;margin-right:10px;font-weight:900}
+svg{overflow:visible}svg path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* ── 판 없이 얼굴 위에 뜨는 카드(흰 테두리 둥근 판, 구멍 없이) */
+.card{background:#fff;padding:10px;border-radius:32px;box-shadow:0 20px 34px rgba(0,0,0,.42)}
+.card img{display:block;width:100%;height:100%;object-fit:cover;border-radius:22px}
+/* ── 포인트(예능 큰 자막): 뜨는 동안 아래 자막은 숨는다 */
+.pt{left:540px;text-align:center;white-space:nowrap;font-weight:900;letter-spacing:-4px;line-height:1.05;z-index:22}
+.pt .s{visibility:hidden;display:block}.pt b{font-weight:900;position:absolute;left:0;top:0;width:100%;white-space:nowrap}
+.k0{color:#000;-webkit-text-stroke:34px #000;filter:drop-shadow(0 16px 18px rgba(0,0,0,.55))}
+.kw2{color:#fff;-webkit-text-stroke:34px #fff;filter:drop-shadow(0 16px 18px rgba(0,0,0,.6))}
+.y{background:linear-gradient(180deg,#fff27c 0,#ffd51e 46%,#ffb300 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.r{background:linear-gradient(180deg,#ff7a63 0,#f02a36 50%,#c30f24 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* ── Q 카드(시청자 질문) */
+.q{left:60px;top:200px;width:960px;z-index:22}
+.q i{display:block;font-style:normal;font-weight:900;font-size:210px;line-height:1;color:#17366b;-webkit-text-stroke:22px #fff;paint-order:stroke fill;filter:drop-shadow(0 10px 12px rgba(0,0,0,.45))}
+.q p{margin:10px 0 0;font-weight:900;font-size:128px;line-height:1.14;letter-spacing:-4px;color:#fff;-webkit-text-stroke:24px #17366b;paint-order:stroke fill;filter:drop-shadow(0 10px 12px rgba(0,0,0,.45))}
+.hand{font-family:"Nanum Pen Script";font-size:120px;line-height:1;color:#fff;-webkit-text-stroke:11px #17181c;paint-order:stroke fill;white-space:nowrap;z-index:22}
+.name{left:50px;z-index:21;display:flex;flex-direction:column;align-items:flex-start;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45))}
+.name small{background:#ffcf14;color:#0b0c0f;font-weight:800;font-size:32px;padding:4px 16px}
+.name b{background:#0b0c0f;color:#fff;font-weight:900;font-size:54px;padding:6px 20px 8px;letter-spacing:-1px}
+#corner{left:44px;top:120px;display:flex;align-items:center;gap:14px;font-weight:900;font-size:54px;letter-spacing:-1px;color:#fff;paint-order:stroke fill;-webkit-text-stroke:11px #0b0c0f;z-index:30;transform-origin:left center;visibility:hidden}
+#corner i{font-style:normal;width:78px;height:78px;border-radius:50%;background:#ffd21f;color:#0b0c0f;-webkit-text-stroke:0;display:grid;place-items:center;font-size:46px;box-shadow:0 0 0 6px #0b0c0f}
+#logo{right:40px;top:44px;width:150px;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.3);z-index:30}
+/* ── 행동 유도(상담 버튼 · ↓ · 탭) */
+.btn{left:540px;white-space:nowrap;font-weight:800;font-size:60px;letter-spacing:-1px;padding:26px 70px 30px;border-radius:70px;background:#111d3b;color:#fff;box-shadow:0 14px 26px rgba(0,0,0,.42);z-index:23;visibility:hidden}
+.btn.on{background:#ffde00;color:#000}
+.chev{left:540px;width:120px;margin-left:-60px;z-index:23;visibility:hidden}
+.tap{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.92);border:4px solid #1e1612;z-index:24;visibility:hidden}
+.ring{width:150px;height:150px;border-radius:50%;border:6px solid #fff;z-index:24;visibility:hidden}
+#note{right:36px;bottom:40px;text-align:right;font-weight:700;font-size:22px;line-height:1.45;color:rgba(255,255,255,.56);text-shadow:0 1px 2px rgba(0,0,0,.3);z-index:30}
+</style></head><body>
+<div id="band" class="a"></div>
+<div id="boardwrap" class="a"><div id="under" class="a"></div><div id="board" class="a"><div id="stage" class="a" style="left:0;top:0;width:1080px"></div></div></div>
+<div id="float"></div><div id="front"></div><div id="caps"></div>
+<div id="corner" class="a"><i></i><span></span></div>
+<div id="note" class="a"></div>
+<script src="세로데이터.js"></script>
+<script>
+const $ = (i) => document.getElementById(i);
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const outC = (x) => 1 - (1 - x) ** 3, outQ = (x) => 1 - (1 - x) ** 5, ioC = (x) => (x < .5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
+const back = (x) => { const c = 1.15; return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2; };
+const pr = (t, a, d, e = outC) => e(cl((t - a) / d));
+const 만들 = (html) => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; };
+const S = D.설정, CY = S.자막_y, BH = S.판_아래;
+// 판 아래 끝은 찢은 종이처럼 들쭉날쭉
+function 경계(씨앗, 밀기) {
+  let r = 씨앗; const 난수 = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  const 점 = []; let 큰 = 0;
+  for (let x = -10; x <= 1090; x += 7 + 난수() * 15) {
+    큰 += (난수() - .5) * 7; 큰 = cl(큰, -14, 14);
+    점.push(x.toFixed(1) + 'px ' + (BH + 큰 + (난수() < .16 ? (난수() - .5) * 15 : (난수() - .5) * 4) + 밀기).toFixed(1) + 'px');
+  }
+  return 'polygon(-10px -10px,1090px -10px,' + [...점].reverse().join(',') + ')';
+}
+for (const id of ['boardwrap', 'under', 'board', 'stage']) $(id).style.height = (BH + 40) + 'px';
+$('under').style.clipPath = 경계(5417, 14); $('board').style.clipPath = 경계(9151, 0);
+if (S.로고) document.body.appendChild(만들(`<img id="logo" class="a" src="../${S.로고}">`));
+$('note').innerHTML = (S.고지 || []).join('<br>');
+// ── 판 안 자료
+const 경로 = { x: ['M22 24L128 128M126 22L24 126', '0 0 150 150'], circle: ['M112 14C52 6 12 62 22 128c8 56 62 96 112 82 48-14 68-74 50-126C168 40 128 10 74 22', '0 0 210 240'], arrowR: ['M20 6c-4 36 12 66 62 84M52 64l32 26-38 14', '0 0 120 110'], arrowU: ['M38 124C48 90 46 50 34 14M10 42l24-32 28 28', '0 0 70 130'], arrowD: ['M34 6C24 40 26 80 38 116M10 88l28 32 26-30', '0 0 70 130'], under: ['M8 20C80 8 200 14 300 10', '0 0 310 30'] };
+function 항목(it) {
+  const 위치 = `left:${it.x}px;top:${it.y}px`;
+  if (it.k === 'print') it.el = 만들(`<div class="a print" style="${위치};width:${it.w}px;height:${it.h}px"><img src="../재료/이미지/${it.img}.png"><div class="a tape"></div><p>${it.label}</p></div>`);
+  if (it.k === 'card') it.el = 만들(`<div class="a card" style="${위치};width:${it.w}px;height:${it.h}px"><img src="../재료/이미지/${it.img}.png"></div>`);
+  if (it.k === 'tag') it.el = 만들(`<div class="a tag" style="${위치};font-size:${it.fs}px">${it.html}<div class="a tape" style="width:100px;height:30px;margin-left:-50px;top:-14px"></div></div>`);
+  if (it.k === 'note') it.el = 만들(`<div class="a note" style="${위치};width:${it.w}px;height:${it.h}px;font-size:${it.fs}px"><span>${it.text}</span></div>`);
+  if (it.k === 'stamp') it.el = 만들(`<div class="a stamp" style="${위치};font-size:${it.fs}px;color:${it.c}">${it.text}</div>`);
+  if (it.k === 'draw') { const [d, vb] = 경로[it.d]; it.el = 만들(`<svg class="a" style="${위치}" width="${it.w}" height="${it.h}" viewBox="${vb}" preserveAspectRatio="none"><path pathLength="1" d="${d}" stroke="${it.c}" stroke-width="${it.sw || (it.d === 'circle' ? 9 : 10)}"/></svg>`); }
+  if (it.k === 'chain') { it.el = 만들(`<div class="a" style="${위치};width:${it.w}px;height:${it.steps.length * 92}px"></div>`); it.steps.forEach((s, i) => { const e = 만들(`<div class="a step" style="top:${i * 92}px;left:${i * 30}px">${i ? '<i>↓</i>' : ''}${s[0]}</div>`); it.el.appendChild(e); s.el = e; }); }
+  return it;
+}
+function 붙기(el, t, a, 각 = 0, 끝 = Infinity) {
+  if (t < a - .001 || t > 끝) { el.style.visibility = 'hidden'; return; }
+  el.style.visibility = 'visible';
+  const p = pr(t, a, .46, back), 아웃 = 끝 < Infinity ? pr(t, 끝 - .25, .25, ioC) : 0, 떠 = Math.sin((t - a) * .9) * 3, 돌 = Math.sin((t - a) * .55) * .35;
+  el.style.opacity = cl((t - a) / .13) * (1 - 아웃);
+  el.style.filter = t - a < .14 ? `blur(${(1 - (t - a) / .14) * 5}px)` : 'none';
+  el.style.transform = `translateY(${-46 * (1 - p) + 떠 - 아웃 * 30}px) rotate(${각 + (1 - p) * 7 + 돌}deg) scale(${1.1 - .1 * p})`;
+}
+function 카드(it, t) {  // 0.92→1.0 + 흐림→선명 0.3초, 나갈 때 위로 0.25초
+  const el = it.el, b = it.t1 ?? Infinity;
+  if (t < it.t - .001 || t > b + .25) { el.style.visibility = 'hidden'; return; }
+  el.style.visibility = 'visible';
+  let s, a, dy, br;
+  if (t < b) { const k = pr(t, it.t, .3); s = .92 + .08 * k; a = k; dy = (1 - k) * 40; br = (1 - k) * 8; }
+  else { const k = pr(t, b, .25); s = 1; a = 1 - k; dy = -k * 60; br = k * 4; }
+  el.style.opacity = a; el.style.filter = br > .3 ? `blur(${br}px)` : 'none'; el.style.transform = `translateY(${dy}px) rotate(${it.r || 0}deg) scale(${s})`;
+}
+function 그리기(it, t, 끝 = Infinity) { const el = it.el; if (t < it.t || t > 끝) { el.style.visibility = 'hidden'; return; } el.style.visibility = 'visible'; el.style.opacity = 1 - (끝 < Infinity ? pr(t, 끝 - .25, .25, ioC) : 0); const p = el.querySelector('path'); p.style.strokeDasharray = '1'; p.style.strokeDashoffset = 1 - pr(t, it.t, it.dur || .34, ioC); }
+function 찍힘(it, t, 끝 = Infinity) { const el = it.el; if (t < it.t || t > 끝) { el.style.visibility = 'hidden'; return; } el.style.visibility = 'visible'; const p = pr(t, it.t, .26, back); el.style.opacity = cl((t - it.t) / .08) * (1 - (끝 < Infinity ? pr(t, 끝 - .25, .25, ioC) : 0)); el.style.transform = `rotate(${it.r}deg) scale(${1.5 - .5 * p})`; }
+function 그리기항목(it, t, 끝) {
+  if (it.k === 'print' || it.k === 'tag' || it.k === 'note') 붙기(it.el, t, it.t, it.r || 0, it.t1 ?? 끝);
+  else if (it.k === 'card') 카드(it, t);
+  else if (it.k === 'draw') 그리기(it, t, it.t1 ?? 끝);
+  else if (it.k === 'stamp') 찍힘(it, t, it.t1 ?? 끝);
+  else if (it.k === 'chain') it.steps.forEach((s, i) => 붙기(s.el, t, s[1], i % 2 ? .6 : -.6, it.t1 ?? 끝));
+}
+D.판.forEach((p) => {
+  p.층.forEach((c, j) => {
+    c.다음 = j + 1 < p.층.length ? p.층[j + 1].t : Infinity;
+    c.el = 만들(`<div class="a layer ${c.kind === 'paper' ? 'paper' : ''}" style="display:none;height:${BH + 40}px"></div>`);
+    if (c.kind === 'photo') { c.ph = 만들(`<img class="a photo" src="../재료/이미지/${c.img}.png">`); c.el.appendChild(c.ph); }
+    c.items.forEach((it) => { 항목(it); c.el.appendChild(it.el); });
+    $('stage').appendChild(c.el);
+  });
+});
+D.위.forEach((it) => { 항목(it); it.el.style.zIndex = 15; $('float').appendChild(it.el); });
+// ── 판 밖
+D.훅.forEach((h) => {
+  const 칠 = (s) => (h.강조 ? s.replace(h.강조, `<b>${h.강조}</b>`) : s);
+  h.e1 = 만들(`<div class="a hook h1" style="top:${h.y}px">${칠(h.줄1)}</div>`); h.e2 = 만들(`<div class="a hook h2" style="top:${h.y + 120}px">${칠(h.줄2)}</div>`);
+  $('front').append(h.e1, h.e2);
+});
+D.포인트.forEach((p) => {
+  const k = p.c === 'r' ? ['kw2', 'r'] : ['k0', 'y'];
+  p.bg = 만들(`<div class="a pt" style="font-size:${p.fs}px"><span class="s">${p.big}</span><b class="${k[0]}">${p.big}</b><b class="${k[1]}">${p.big}</b></div>`);
+  $('front').append(p.bg);
+});
+D.질문.forEach((q) => { q.el = 만들(`<div class="a q"><i>Q.</i><p>${q.text}</p></div>`); $('front').appendChild(q.el); });
+D.손글씨.forEach((h) => { h.el = 만들(`<div class="a hand" style="left:${h.x}px;top:${h.y}px">${h.text}</div>`); $('front').appendChild(h.el); });
+D.이름표.forEach((n) => { n.el = 만들(`<div class="a name" style="top:${n.y}px"><small>${n.위}</small><b>${n.아래}</b></div>`); $('front').appendChild(n.el); });
+const 셰브론 = '<svg viewBox="0 0 120 130" width="120" height="130"><path d="M20 10L60 50L100 10" stroke="#ffde00" stroke-width="16"/><path d="M20 56L60 96L100 56" stroke="rgba(255,222,0,.6)" stroke-width="16"/></svg>';
+D.행동.forEach((c) => {
+  c.btn = 만들(`<div class="a btn" style="top:${c.y}px">${c.글}</div>`); c.chev = 만들(`<div class="a chev" style="top:${c.y + 150}px">${셰브론}</div>`);
+  c.tap = 만들('<div class="a tap"></div>'); c.ring = 만들('<div class="a ring"></div>');
+  $('front').append(c.btn, c.chev, c.tap, c.ring);
+});
+// ── 자막 줄
+const 말 = D.줄.map((l, k) => { const ws = D.단어.filter((d) => d.줄 === k); return { l, k, t0: ws[0].t0, t1: ws[ws.length - 1].t1 }; });
+const 보임 = 말.filter((m) => !D.숨김.includes(m.k));
+보임.forEach((m, i) => {
+  const 다음 = 보임[i + 1];
+  m.시작 = Math.max(0, m.t0 - .05);
+  m.끝 = 다음 && 다음.t0 - m.t1 < .6 ? Math.max(0, 다음.t0 - .05) : m.t1 + .3;
+  const 키 = D.핵심[m.k]; let h = m.l;
+  if (키 && m.l.includes(키)) { const i0 = m.l.indexOf(키); h = `${m.l.slice(0, i0)}<span class="kw">${키}<span class="pill">${키}</span></span>${m.l.slice(i0 + 키.length)}`; }
+  m.el = 만들(`<div class="a cl" style="top:${CY}px">${h}</div>`); m.pill = m.el.querySelector('.pill');
+  $('caps').appendChild(m.el);
+});
+const 자막끝 = 보임.length ? 보임[보임.length - 1].끝 + .14 : 0;
+function 자막(t) {
+  let 가림 = 0; for (const p of D.포인트) 가림 = Math.max(가림, pr(t, p.t큰, .12) * (1 - pr(t, p.끝, .15)));
+  $('band').style.top = (CY - 180) + 'px';
+  $('band').style.opacity = (t >= (보임[0]?.시작 ?? 1e9) && t <= 자막끝 ? 1 : 0) * (1 - 가림);
+  for (const m of 보임) {
+    const e = m.el;
+    if (t < m.시작 || t >= m.끝 + .14 || 가림 >= .999) { e.style.visibility = 'hidden'; continue; }
+    let dy, a, br;
+    if (t < m.끝) { const k = pr(t, m.시작, .24); dy = (1 - k) * 28; a = k; br = (1 - k) * 10; }
+    else { const k = pr(t, m.끝, .14); dy = -k * 14; a = 1 - k; br = k * 4; }
+    e.style.visibility = 'visible'; e.style.opacity = a * (1 - 가림);
+    e.style.transform = `translate(-50%,-50%) translateY(${dy}px) scale(${m.맞춤 || 1})`;
+    e.style.filter = `${br > .3 ? `blur(${br.toFixed(1)}px) ` : ''}drop-shadow(0 4px 6px rgba(0,0,0,.45))`;
+    if (m.pill) m.pill.style.clipPath = `inset(-10px ${((1 - pr(t, m.시작 + .06, .22)) * 100).toFixed(1)}% -10px -10px)`;
+  }
+}
+function 훅(h, t) {
+  for (const e of [h.e1, h.e2]) e.style.visibility = 'hidden';
+  if (t < h.t0 || t > h.t1 + .02) return;
+  const ko = t > h.t1 - .3 ? 1 - pr(t, h.t1 - .3, .3) : 1, k1 = pr(t, h.t0, .3);
+  Object.assign(h.e1.style, { visibility: 'visible', opacity: k1 * ko, filter: `blur(${((1 - k1) * 8).toFixed(1)}px) drop-shadow(0 6px 10px rgba(0,0,0,.5))`, transform: `translateY(${(1 - k1) * 30 - (1 - ko) * 24}px)` });
+  if (t >= h.t0 + .3) { const k2 = pr(t, h.t0 + .3, .1); Object.assign(h.e2.style, { visibility: 'visible', opacity: k2 * ko, transform: `translateY(${-(1 - ko) * 24}px) scale(${1.25 - .25 * k2})` }); }
+}
+function 포인트(p, t) {
+  const 큰 = p.bg;
+  if (t < p.t큰 - .001 || t > p.끝) { 큰.style.visibility = 'hidden'; return; }
+  큰.style.visibility = 'visible'; const q = pr(t, p.t큰, .32, back), a = pr(t, p.끝 - .2, .2, ioC), u = t - p.t큰;
+  큰.style.opacity = cl(u / .1) * (1 - a); 큰.style.filter = u < .12 ? `blur(${(1 - u / .12) * 9}px)` : 'none';
+  큰.style.transform = `translate(-50%,-50%) rotate(-1.3deg) scale(${(p.맞춤 || 1) * (1.22 - .22 * q) * (1 + Math.sin(u * 1.6) * .004) * (1 - a * .08)})`;
+}
+function 행동(c, t) {
+  for (const e of [c.btn, c.chev, c.tap, c.ring]) e.style.visibility = 'hidden';
+  if (t < c.t0 || t > c.끝) return;
+  const k = pr(t, c.t0, .35), on = c.t눌림 && t >= c.t눌림, 눌 = on ? 1 - .06 * Math.max(0, 1 - Math.abs(t - c.t눌림 - .06) / .12) : 1;
+  c.btn.classList.toggle('on', !!on);
+  Object.assign(c.btn.style, { visibility: 'visible', opacity: k, filter: k < .98 ? `blur(${((1 - k) * 6).toFixed(1)}px)` : 'none', transform: `translateX(-50%) translateY(${(1 - k) * 60}px) scale(${(.9 + .1 * k) * 눌})` });
+  if (c.t화살 && t >= c.t화살) Object.assign(c.chev.style, { visibility: 'visible', opacity: pr(t, c.t화살, .3), transform: `translateY(${Math.sin((t - c.t화살) * 6) * 10}px)` });
+  if (c.t탭 && t >= c.t탭 && t < c.t탭 + 1.8) {
+    const tx = 540 + c.폭 / 2 - 70, ty = c.y + c.높이 - 10, kt = pr(t, c.t탭, .2);
+    Object.assign(c.tap.style, { visibility: 'visible', left: tx - 32 + 'px', top: ty - 32 + (1 - kt) * 50 + 'px', opacity: kt });
+    const kr = (t - c.t탭 - .04) / .45;
+    if (kr > 0 && kr < 1) Object.assign(c.ring.style, { visibility: 'visible', left: tx - 75 + 'px', top: ty - 75 + 'px', opacity: 1 - kr, transform: `scale(${.5 + .9 * kr})` });
+  }
+}
+window.__frame = (t) => {
+  const 지금 = D.판.find((p) => t >= p.열기 - .01 && t < p.닫기 + .7);
+  if (지금) {
+    const 열 = pr(t, 지금.열기, .62, outQ), 닫 = pr(t, 지금.닫기, .62, ioC), k = 열 * (1 - 닫);
+    $('boardwrap').style.visibility = k > .001 ? 'visible' : 'hidden';
+    $('boardwrap').style.transform = `translateY(${-(BH + 80) * (1 - k)}px)`;
+  } else $('boardwrap').style.visibility = 'hidden';
+  D.판.forEach((p) => {
+    const 켜짐 = p === 지금;
+    p.층.forEach((c) => {
+      if (!켜짐 || t < c.t || t > c.다음 + .65) { c.el.style.display = 'none'; return; }
+      c.el.style.display = 'block';
+      const q = pr(t, c.t, .55, ioC); c.el.style.clipPath = p.층[0] === c ? 'none' : `inset(0 0 0 ${(1 - q) * 100}%)`;
+      if (c.ph) c.ph.style.transform = `scale(${1.03 + (t - c.t) * .008})`;
+      c.items.forEach((it) => 그리기항목(it, t, Infinity));
+    });
+  });
+  D.위.forEach((it) => 그리기항목(it, t, it.t1));
+  const cn = [...D.코너].reverse().find((c) => t >= c.t), co = $('corner');
+  if (cn && t < D.코너끝 + .25) { if (co.dataset.n !== cn.n) { co.querySelector('i').textContent = cn.n; co.querySelector('span').textContent = cn.text; co.dataset.n = cn.n; } const q = pr(t, cn.t, .36, back); co.style.visibility = 'visible'; co.style.opacity = cl((t - cn.t) / .1) * (1 - pr(t, D.코너끝, .25, ioC)); co.style.transform = `scale(${.72 + .28 * q})`; } else co.style.visibility = 'hidden';
+  D.훅.forEach((h) => 훅(h, t));
+  D.포인트.forEach((p) => 포인트(p, t));
+  D.질문.forEach((q) => { const e = q.el; if (t < q.t0 || t > q.t1) { e.style.visibility = 'hidden'; return; } e.style.visibility = 'visible'; const p = pr(t, q.t0, .36, back), a = pr(t, q.t1 - .2, .2, ioC); e.style.opacity = cl((t - q.t0) / .1) * (1 - a); e.style.transform = `translateX(${(1 - p) * 60}px) scale(${.96 + .04 * p})`; });
+  D.손글씨.forEach((h) => { const e = h.el; if (t < h.t0 || t > h.t1) { e.style.visibility = 'hidden'; return; } e.style.visibility = 'visible'; const p = pr(t, h.t0, .34, back), a = pr(t, h.t1 - .2, .2, ioC); e.style.opacity = cl((t - h.t0) / .1) * (1 - a); e.style.transform = `rotate(${h.r}deg) scale(${.82 + .18 * p})`; });
+  D.이름표.forEach((n) => { const e = n.el; if (t < n.t0 || t > n.t1) { e.style.visibility = 'hidden'; return; } e.style.visibility = 'visible'; const p = pr(t, n.t0, .4, outQ), a = pr(t, n.t1 - .25, .25, ioC); e.style.opacity = cl((t - n.t0) / .1) * (1 - a); e.style.transform = `translateX(${(1 - p) * -60}px)`; });
+  D.행동.forEach((c) => 행동(c, t));
+  자막(t);
+};
+(async () => {
+  await document.fonts.load('700 56px P'); await document.fonts.load('800 56px P'); await document.fonts.load('900 56px P'); await document.fonts.load('40px "Nanum Pen Script"');
+  await Promise.all([...document.images].map((i) => (i.complete ? 0 : new Promise((o) => { i.onload = i.onerror = o; }))));
+  보임.forEach((m) => { m.el.style.transform = 'none'; const w = m.el.getBoundingClientRect().width; m.맞춤 = Math.min(1, 940 / w); });
+  D.포인트.forEach((p) => { p.bg.style.transform = 'none'; const w = p.bg.querySelector('.s').getBoundingClientRect().width; p.맞춤 = Math.min(1, 1000 / w); p.bg.style.top = p.y + 'px'; });
+  document.querySelectorAll('.note').forEach((n) => { const sp = n.querySelector('span'), w = sp.scrollWidth, h = sp.scrollHeight, k = Math.min(1, (n.clientWidth - 34) / w, (n.clientHeight - 30) / h); if (k < 1) sp.style.fontSize = Math.floor(parseFloat(getComputedStyle(n).fontSize) * k) + 'px'; });
+  D.행동.forEach((c) => { c.btn.style.transform = 'none'; c.btn.style.visibility = 'hidden'; const r = c.btn.getBoundingClientRect(); c.폭 = r.width; c.높이 = r.height; });
+  window.__frame(0); window.__준비 = true;
+})();
+</script>
+</body></html>
